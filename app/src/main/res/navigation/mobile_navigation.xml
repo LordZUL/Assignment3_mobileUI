@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/homeWeeklyFragment">
+
+    <fragment
+        android:id="@+id/homeWeeklyFragment"
+        android:name="com.example.assignment3.HomeWeeklyFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" />
+    <fragment
+        android:id="@+id/monthlyCalendarFragment"
+        android:name="com.example.assignment3.MonthlyCalendarFragment"
+        android:label="fragment_monthly_calendar_view"
+        tools:layout="@layout/fragment_monthly_calendar_view" />
+    <fragment
+        android:id="@+id/addTaskFragment"
+        android:name="com.example.assignment3.AddTaskFragment"
+        android:label="fragment_add_task"
+        tools:layout="@layout/fragment_add_task" />
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.assignment3.SettingsFragment"
+        android:label="fragment_settings"
+        tools:layout="@layout/fragment_settings" />
+    <fragment
+        android:id="@+id/taskDetailsFragment"
+        android:name="com.example.assignment3.TaskDetailsFragment"
+        android:label="fragment_task_details"
+        tools:layout="@layout/fragment_task_details" />
+</navigation>
