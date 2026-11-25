@@ -30,7 +30,7 @@ public class MonthlyCalendarFragment extends Fragment {
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_home, container, false);
+        return inflater.inflate(R.layout.fragment_monthly_calendar_view, container, false);
     }
 
     @Override
@@ -86,8 +86,13 @@ public class MonthlyCalendarFragment extends Fragment {
             updateDateHeader();
         });
 
-        view.findViewById(R.id.add_event).setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Add event", Toast.LENGTH_SHORT).show());
+        // + button: open Add Task, pre-filled with the selected date
+        view.findViewById(R.id.add_event).setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putString(AddTaskFragment.ARG_DATE, selected.toString());
+            androidx.navigation.Navigation.findNavController(v)
+                    .navigate(R.id.addTaskFragment, args);
+        });
 
         syncSpinners();
         buildGrid();

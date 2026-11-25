@@ -9,7 +9,7 @@
     <fragment
         android:id="@+id/monthlyCalendarFragment"
         android:name="com.example.assignment3.MonthlyCalendarFragment"
-        android:label="fragment_monthly_calendar_view"
+        android:label="Calendar"
         tools:layout="@layout/fragment_monthly_calendar_view" />
     <fragment
         android:id="@+id/addTaskFragment"

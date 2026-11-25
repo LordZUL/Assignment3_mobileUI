@@ -1,14 +1,231 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    Add Task screen. One vertical container (like the home screen) with these items:
+      1. Top bar        - close (X), handle, Save
+      2. Title + type   - title field, "Task" chip
+      3. Details        - Collaboration, Category, Priority, Status, Location
+      4. Date & alerts  - Due Date, repeat, Notification
+      5. Description
+      6. Extras         - Checklist, Attachment
+    Sections are separated by 1dp black dividers. ScrollView keeps it usable on short screens.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#D9D9D9"
+    android:fillViewport="true"
     tools:context=".AddTaskFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="6dp">
 
-</FrameLayout>
+        <!-- ===== ITEM 1: Top bar ===== -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageButton
+                android:id="@+id/close_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="start|center_vertical"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_close"
+                android:contentDescription="Close" />
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="3dp"
+                android:layout_gravity="top|center_horizontal"
+                android:layout_marginTop="4dp"
+                android:background="#9E9E9E" />
+
+            <TextView
+                android:id="@+id/save_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:background="@drawable/bg_white_rounded"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="Save"
+                android:textColor="@color/black"
+                android:textSize="15sp" />
+        </FrameLayout>
+
+        <!-- ===== ITEM 2: Title + type chip ===== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="4dp"
+            android:paddingBottom="10dp">
+
+            <EditText
+                android:id="@+id/task_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:hint="Title"
+                android:inputType="textCapSentences"
+                android:paddingVertical="4dp"
+                android:textColor="@color/black"
+                android:textColorHint="#222222"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/task_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_white_rounded"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="2dp"
+                android:text="Task"
+                android:textColor="@color/black" />
+        </LinearLayout>
+
+        <View style="@style/TaskDivider" />
+
+        <!-- ===== ITEM 3: Details ===== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="6dp">
+
+            <LinearLayout style="@style/TaskRow">
+                <TextView style="@style/TaskRowLabel" android:text="Collaboration" />
+                <TextView android:id="@+id/collaboration_value" style="@style/TaskRowValue" android:text="Empty" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/TaskRow">
+                <TextView style="@style/TaskRowLabel" android:text="Category" />
+                <TextView android:id="@+id/category_value" style="@style/TaskRowValue" android:text="Empty" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/TaskRow">
+                <TextView style="@style/TaskRowLabel" android:text="Priority" />
+                <TextView android:id="@+id/priority_value" style="@style/TaskRowValue" android:text="Empty" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/TaskRow">
+                <TextView style="@style/TaskRowLabel" android:text="Status" />
+                <TextView
+                    android:id="@+id/status_chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pill"
+                    android:drawableStart="@drawable/status_dot"
+                    android:drawablePadding="6dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="2dp"
+                    android:text="Not Started"
+                    android:textColor="@color/black"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/TaskRow">
+                <TextView style="@style/TaskRowLabel" android:text="Location" />
+                <TextView android:id="@+id/location_value" style="@style/TaskRowValue" android:text="Empty" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View style="@style/TaskDivider" />
+
+        <!-- ===== ITEM 4: Date & alerts ===== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="6dp">
+
+            <LinearLayout
+                android:id="@+id/due_date_row"
+                style="@style/TaskRow"
+                android:background="?attr/selectableItemBackground">
+                <TextView style="@style/TaskRowLabel" android:text="Due Date" />
+                <TextView
+                    android:id="@+id/due_date_value"
+                    style="@style/TaskRowValue"
+                    android:textColor="@color/black"
+                    tools:text="Wed, June 13, 2026" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/TaskRow">
+                <TextView
+                    android:id="@+id/repeat_value"
+                    style="@style/TaskRowLabel"
+                    android:drawableStart="@drawable/ic_repeat"
+                    android:drawablePadding="4dp"
+                    android:text="Does not repeat" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/TaskRow">
+                <TextView
+                    style="@style/TaskRowLabel"
+                    android:drawableStart="@drawable/ic_bell"
+                    android:drawablePadding="4dp"
+                    android:text="Notification" />
+                <TextView
+                    android:id="@+id/notification_value"
+                    style="@style/TaskRowValue"
+                    android:text="30 min before"
+                    android:textColor="@color/black" />
+                <ImageButton
+                    android:id="@+id/notification_clear"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_close_small"
+                    android:contentDescription="Remove notification" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View style="@style/TaskDivider" />
+
+        <!-- ===== ITEM 5: Description ===== -->
+        <EditText
+            android:id="@+id/task_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:gravity="top|start"
+            android:hint="Description"
+            android:inputType="textMultiLine|textCapSentences"
+            android:minLines="2"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="10dp"
+            android:textColor="@color/black"
+            android:textColorHint="#8A8A8A" />
+
+        <View style="@style/TaskDivider" />
+
+        <!-- ===== ITEM 6: Extras ===== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="12dp">
+
+            <TextView
+                android:id="@+id/checklist_button"
+                style="@style/TaskExtraButton"
+                android:drawableStart="@drawable/ic_checklist"
+                android:text="Checklist" />
+
+            <TextView
+                android:id="@+id/attachment_button"
+                style="@style/TaskExtraButton"
+                android:layout_marginStart="8dp"
+                android:drawableStart="@drawable/ic_attach"
+                android:text="Attachment" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
