@@ -1,29 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Home screen: ONE vertical container holding 4 full-width "items" (rows).
+      1. Controls row   - month spinner, year spinner, next arrow, Today button
+      2. Calendar       - day-of-week labels + month grid
+      3. Date header    - the currently selected date
+      4. Events panel   - "Academic" section, items card, + button
+    LinearLayout is Android's equivalent of a CSS flex box:
+      orientation = flex-direction, layout_weight = flex-grow, gravity = align-items.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/white">
 
-    <!-- Top controls: month, year, next, Today -->
+    <!-- ===== ITEM 1: Month / year controls + Today ===== -->
     <LinearLayout
+        android:id="@+id/controls_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="8dp">
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp">
 
         <Spinner
             android:id="@+id/month_spinner"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:contentDescription="Month" />
 
         <Spinner
             android:id="@+id/year_spinner"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:contentDescription="Year" />
+
         <ImageButton
             android:id="@+id/next_month"
             android:layout_width="40dp"
@@ -32,38 +46,91 @@
             android:src="@drawable/ic_chevron_right"
             android:contentDescription="Next month" />
 
+        <!-- Spacer pushes Today to the right edge (like flex: 1) -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
         <Button
             android:id="@+id/today_button"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Today" />
     </LinearLayout>
 
-    <!-- Day-of-week header -->
+    <!-- ===== ITEM 2: Calendar (weekday labels + month grid) ===== -->
     <LinearLayout
+        android:id="@+id/calendar_section"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="8dp">
+        android:orientation="vertical"
+        android:paddingHorizontal="8dp"
+        android:paddingBottom="8dp">
 
-        <TextView style="@style/DowLabel" android:text="Su" />
-        <TextView style="@style/DowLabel" android:text="Mo" />
-        <TextView style="@style/DowLabel" android:text="Tu" />
-        <TextView style="@style/DowLabel" android:text="We" />
-        <TextView style="@style/DowLabel" android:text="Th" />
-        <TextView style="@style/DowLabel" android:text="Fr" />
-        <TextView style="@style/DowLabel" android:text="Sa" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="4dp">
+
+            <TextView style="@style/DowLabel" android:text="Su" />
+            <TextView style="@style/DowLabel" android:text="Mo" />
+            <TextView style="@style/DowLabel" android:text="Tu" />
+            <TextView style="@style/DowLabel" android:text="We" />
+            <TextView style="@style/DowLabel" android:text="Th" />
+            <TextView style="@style/DowLabel" android:text="Fr" />
+            <TextView style="@style/DowLabel" android:text="Sa" />
+        </LinearLayout>
+
+        <!-- Filled by CalendarAdapter with a 7-column GridLayoutManager -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/calendar_grid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            tools:itemCount="35"
+            tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            tools:spanCount="7"
+            tools:listitem="@layout/item_day" />
     </LinearLayout>
 
-    <!-- Month grid -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/calendar_grid"
+    <!-- ===== ITEM 3: Selected date header ===== -->
+    <LinearLayout
+        android:id="@+id/date_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="8dp" />
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:background="#D9D9D9">
 
-    <!-- Selected-date panel -->
+        <!-- small drag-handle look from the mockup -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="6dp"
+            android:background="#9E9E9E" />
+
+        <TextView
+            android:id="@+id/selected_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingVertical="8dp"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            tools:text="June 13 2026" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/black" />
+    </LinearLayout>
+
+    <!-- ===== ITEM 4: Events panel (fills remaining height = flex-grow: 1) ===== -->
     <FrameLayout
+        android:id="@+id/events_panel"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -72,34 +139,22 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/selected_date"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:padding="12dp"
-                android:textSize="18sp"
-                android:text="June 13 2026" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#000000" />
+            android:orientation="vertical"
+            android:padding="8dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
+                android:layout_marginBottom="6dp"
                 android:text="Academic"
+                android:textColor="@color/black"
                 android:textStyle="bold" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="8dp"
-                app:cardCornerRadius="8dp">
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp">
 
                 <TextView
                     android:id="@+id/no_items"

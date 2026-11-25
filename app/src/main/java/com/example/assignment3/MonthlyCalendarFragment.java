@@ -18,7 +18,7 @@ import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.*;
 
-public class HomeFragment extends Fragment {
+public class MonthlyCalendarFragment extends Fragment {
 
     private Spinner monthSpinner, yearSpinner;
     private RecyclerView grid;
