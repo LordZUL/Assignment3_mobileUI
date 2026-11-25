@@ -24,7 +24,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1" />
-<!--
         <ImageButton
             android:id="@+id/next_month"
             android:layout_width="40dp"
@@ -32,7 +31,6 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_chevron_right"
             android:contentDescription="Next month" />
-            -->
 
         <Button
             android:id="@+id/today_button"
