@@ -2,9 +2,11 @@ package com.example.assignment3;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.Filter;
+import android.widget.ListPopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.IntConsumer;
 
 public class AddTaskFragment extends Fragment {
 
@@ -65,8 +69,13 @@ public class AddTaskFragment extends Fragment {
         TextView notificationValue = view.findViewById(R.id.notification_value);
         View notificationClear = view.findViewById(R.id.notification_clear);
 
+        repeatValue = view.findViewById(R.id.repeat_value);
         showDueDate();
         setUpCollaboration(view);
+
+        // Repeat: popup with radio buttons + Custom (Google Calendar style)
+        view.findViewById(R.id.repeat_row).setOnClickListener(v ->
+                RepeatPicker.show(requireContext(), repeatRule, dueDate, this::showRepeat));
 
         // Category: Notion-style single-select dropdown
         categoryValue = view.findViewById(R.id.category_value);
@@ -75,6 +84,16 @@ public class AddTaskFragment extends Fragment {
                     categoryName = selected == null ? null : selected.name;
                     showCategory(selected);
                 }));
+
+        // Priority: dropdown with High / Medium / Low
+        priorityValue = view.findViewById(R.id.priority_value);
+        view.findViewById(R.id.priority_row).setOnClickListener(v -> showPriorityMenu());
+        stylePill(priorityValue, PRIORITIES[priority], PRIORITY_COLORS[priority]);  // "None", gray
+
+        // Status: dropdown with Not Started / In Progress / Completed
+        statusValue = view.findViewById(R.id.status_chip);
+        view.findViewById(R.id.status_row).setOnClickListener(v -> showStatusMenu());
+        stylePill(statusValue, STATUSES[status], STATUS_COLORS[status]);         // "Not Started", gray
 
         // X: go back to the calendar without saving
         view.findViewById(R.id.close_button).setOnClickListener(v ->
@@ -115,6 +134,104 @@ public class AddTaskFragment extends Fragment {
 
     private void showDueDate() {
         dueDateValue.setText(dueDate.format(DUE_FORMAT));
+        showRepeat();   // "Every week on Wednesday" etc. follows the due date
+    }
+
+    private final RepeatRule repeatRule = new RepeatRule();
+    private TextView repeatValue;
+
+    private void showRepeat() {
+        repeatValue.setText(repeatRule.summary(dueDate));
+    }
+
+    // ---------------------------------------------------------------------
+    // Priority & Status: white pill + coloured dot, tap for a dropdown
+    // ---------------------------------------------------------------------
+
+    private static final String[] PRIORITIES = {"High", "Medium", "Low", "None"};
+    private static final int[] PRIORITY_COLORS = {
+            0xFFE03E3E,   // High   = red
+            0xFFDFAB01,   // Medium = yellow
+            0xFF337EA9,   // Low    = blue
+            0xFF9E9E9E};  // None   = gray (default)
+
+    private static final String[] STATUSES = {"Not Started", "In Progress", "Completed"};
+    private static final int[] STATUS_COLORS = {
+            0xFF9E9E9E,   // Not Started = gray (default)
+            0xFFDFAB01,   // In Progress = yellow
+            0xFF0F7B6C};  // Completed   = green
+
+    private TextView priorityValue;
+    private TextView statusValue;
+    private int priority = 3;   // "None"
+    private int status = 0;     // "Not Started"
+
+    private void showPriorityMenu() {
+        showPillMenu(priorityValue, PRIORITIES, PRIORITY_COLORS, priority, picked -> {
+            priority = picked;
+            stylePill(priorityValue, PRIORITIES[priority], PRIORITY_COLORS[priority]);
+        });
+    }
+
+    private void showStatusMenu() {
+        showPillMenu(statusValue, STATUSES, STATUS_COLORS, status, picked -> {
+            status = picked;
+            stylePill(statusValue, STATUSES[status], STATUS_COLORS[status]);
+        });
+    }
+
+    /** Dropdown under the pill: each option has its dot, the current one gets a ✓. */
+    private void showPillMenu(TextView anchor, String[] names, int[] colors, int current,
+                              IntConsumer onPick) {
+        float d = getResources().getDisplayMetrics().density;
+
+        ListPopupWindow popup = new ListPopupWindow(requireContext());
+        popup.setAnchorView(anchor);
+        popup.setWidth((int) (170 * d));
+        popup.setModal(true);
+        popup.setAdapter(new ArrayAdapter<String>(requireContext(), 0, names) {
+            @NonNull
+            @Override
+            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                TextView tv = convertView instanceof TextView
+                        ? (TextView) convertView : new TextView(getContext());
+                tv.setPadding((int) (14 * d), (int) (12 * d), (int) (14 * d), (int) (12 * d));
+                tv.setTextSize(14);
+                tv.setTextColor(0xFF000000);
+                tv.setText(names[position] + (position == current ? "   \u2713" : ""));
+                tv.setCompoundDrawablesRelativeWithIntrinsicBounds(dot(colors[position]), null, null, null);
+                tv.setCompoundDrawablePadding((int) (10 * d));
+                return tv;
+            }
+        });
+        popup.setOnItemClickListener((parent, v, position, id) -> {
+            onPick.accept(position);
+            popup.dismiss();
+        });
+        popup.show();
+    }
+
+    /** White rounded pill with a small coloured dot before the text. */
+    private void stylePill(TextView tv, String text, int dotColor) {
+        float d = getResources().getDisplayMetrics().density;
+        tv.setText(text);
+        tv.setTextColor(0xFF000000);
+        tv.setTextSize(11);
+        tv.setBackgroundResource(R.drawable.bg_pill);
+        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(dot(dotColor), null, null, null);
+        tv.setCompoundDrawablePadding((int) (6 * d));
+        tv.setGravity(Gravity.CENTER_VERTICAL);
+        tv.setPadding((int) (10 * d), (int) (2 * d), (int) (10 * d), (int) (2 * d));
+    }
+
+    /** Small coloured circle, same size as the Status dot. */
+    private GradientDrawable dot(int color) {
+        int size = (int) (7 * getResources().getDisplayMetrics().density);
+        GradientDrawable g = new GradientDrawable();
+        g.setShape(GradientDrawable.OVAL);
+        g.setColor(color);
+        g.setSize(size, size);
+        return g;
     }
 
     // ---------------------------------------------------------------------

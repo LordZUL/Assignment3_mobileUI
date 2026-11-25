@@ -140,12 +140,31 @@
                 <TextView android:id="@+id/category_value" style="@style/TaskRowValue" android:text="Empty" />
             </LinearLayout>
 
-            <LinearLayout style="@style/TaskRow">
+            <!-- Priority: tap for High / Medium / Low / None (pill like Status) -->
+            <LinearLayout
+                android:id="@+id/priority_row"
+                style="@style/TaskRow"
+                android:background="?attr/selectableItemBackground">
                 <TextView style="@style/TaskRowLabel" android:text="Priority" />
-                <TextView android:id="@+id/priority_value" style="@style/TaskRowValue" android:text="Empty" />
+                <TextView
+                    android:id="@+id/priority_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pill"
+                    android:drawablePadding="6dp"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="2dp"
+                    android:text="None"
+                    android:textColor="@color/black"
+                    android:textSize="11sp" />
             </LinearLayout>
 
-            <LinearLayout style="@style/TaskRow">
+            <!-- Status: tap for Not Started / In Progress / Completed (pill like Priority) -->
+            <LinearLayout
+                android:id="@+id/status_row"
+                style="@style/TaskRow"
+                android:background="?attr/selectableItemBackground">
                 <TextView style="@style/TaskRowLabel" android:text="Status" />
                 <TextView
                     android:id="@+id/status_chip"
@@ -162,9 +181,24 @@
                     android:textSize="11sp" />
             </LinearLayout>
 
+            <!-- Location: type straight into the field -->
             <LinearLayout style="@style/TaskRow">
                 <TextView style="@style/TaskRowLabel" android:text="Location" />
-                <TextView android:id="@+id/location_value" style="@style/TaskRowValue" android:text="Empty" />
+                <EditText
+                    android:id="@+id/location_input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.4"
+                    android:background="@android:color/transparent"
+                    android:gravity="end"
+                    android:hint="Empty"
+                    android:imeOptions="actionDone"
+                    android:inputType="textPostalAddress|textCapWords"
+                    android:padding="0dp"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:textColorHint="#8A8A8A"
+                    android:textSize="14sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -189,7 +223,11 @@
                     tools:text="Wed, June 13, 2026" />
             </LinearLayout>
 
-            <LinearLayout style="@style/TaskRow">
+            <!-- Repeat: tap for Does not repeat / Every day / ... / Custom -->
+            <LinearLayout
+                android:id="@+id/repeat_row"
+                style="@style/TaskRow"
+                android:background="?attr/selectableItemBackground">
                 <TextView
                     android:id="@+id/repeat_value"
                     style="@style/TaskRowLabel"
