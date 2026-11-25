@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/day_text"
+<!-- One day in the month grid: the number, then coloured dots for tasks due that day -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="44dp"
-    android:gravity="center"
-    android:textSize="16sp" />
+    android:layout_height="50dp"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingTop="2dp">
+
+    <TextView
+        android:id="@+id/day_text"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:gravity="center"
+        android:textSize="16sp" />
+
+    <!-- up to 3 dots (one per category with tasks due); filled in by CalendarAdapter -->
+    <LinearLayout
+        android:id="@+id/day_dots"
+        android:layout_width="wrap_content"
+        android:layout_height="6dp"
+        android:layout_marginTop="2dp"
+        android:gravity="center"
+        android:orientation="horizontal" />
+</LinearLayout>

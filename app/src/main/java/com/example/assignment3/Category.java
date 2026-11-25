@@ -36,16 +36,24 @@ public class Category {
     private static final String PREFS = "category_prefs";
     private static final String KEY = "categories";
 
+    /** The Category field's options (Academic / Work / Personal to start). */
     public static List<Category> loadAll(Context ctx) {
+        List<Category> defaults = new ArrayList<>();
+        defaults.add(new Category("Academic", COLORS[5]));  // blue
+        defaults.add(new Category("Work", COLORS[2]));      // orange
+        defaults.add(new Category("Personal", COLORS[4]));  // green
+        return loadAll(ctx, KEY, defaults);
+    }
+
+    public static void saveAll(Context ctx, List<Category> list) {
+        saveAll(ctx, KEY, list);
+    }
+
+    /** Any option list, saved under its own key (e.g. "classes", "coursework_types"). */
+    public static List<Category> loadAll(Context ctx, String key, List<Category> defaults) {
+        String json = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(key, null);
+        if (json == null) return new ArrayList<>(defaults);   // first run
         List<Category> list = new ArrayList<>();
-        String json = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null);
-        if (json == null) {
-            // first run: the three defaults
-            list.add(new Category("Academic", COLORS[5]));  // blue
-            list.add(new Category("Work", COLORS[2]));      // orange
-            list.add(new Category("Personal", COLORS[4]));  // green
-            return list;
-        }
         try {
             JSONArray arr = new JSONArray(json);
             for (int i = 0; i < arr.length(); i++) {
@@ -56,7 +64,7 @@ public class Category {
         return list;
     }
 
-    public static void saveAll(Context ctx, List<Category> list) {
+    public static void saveAll(Context ctx, String key, List<Category> list) {
         JSONArray arr = new JSONArray();
         try {
             for (Category c : list) {
@@ -64,7 +72,16 @@ public class Category {
             }
         } catch (Exception ignored) { }
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                .putString(KEY, arr.toString()).apply();
+                .putString(key, arr.toString()).apply();
+    }
+
+    /** Builds defaults from names, cycling through the colours. */
+    public static List<Category> defaults(String... names) {
+        List<Category> list = new ArrayList<>();
+        for (int i = 0; i < names.length; i++) {
+            list.add(new Category(names[i], COLORS[(i + 2) % COLORS.length]));
+        }
+        return list;
     }
 
     @Nullable

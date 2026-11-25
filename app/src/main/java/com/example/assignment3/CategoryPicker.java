@@ -42,8 +42,18 @@ public class CategoryPicker {
         void onChanged(@Nullable Category selected);
     }
 
+    /** The Category field. */
     public static void show(Context ctx, @Nullable String selectedName, Listener listener) {
-        new CategoryPicker(ctx, selectedName, listener).open();
+        new CategoryPicker(ctx, null, null, selectedName, listener).open();
+    }
+
+    /**
+     * Same dropdown for another field (e.g. Class, Coursework Type).
+     * Each field keeps its own options under {@code storeKey}.
+     */
+    public static void show(Context ctx, String storeKey, List<Category> defaults,
+                            @Nullable String selectedName, Listener listener) {
+        new CategoryPicker(ctx, storeKey, defaults, selectedName, listener).open();
     }
 
     private final Context ctx;
@@ -59,11 +69,22 @@ public class CategoryPicker {
     private OptionAdapter adapter;
     private ItemTouchHelper touchHelper;
 
-    private CategoryPicker(Context ctx, @Nullable String selectedName, Listener listener) {
+    @Nullable private final String storeKey;   // null = the Category field
+
+    private CategoryPicker(Context ctx, @Nullable String storeKey, @Nullable List<Category> defaults,
+                           @Nullable String selectedName, Listener listener) {
         this.ctx = ctx;
+        this.storeKey = storeKey;
         this.selectedName = selectedName;
         this.listener = listener;
-        this.all = Category.loadAll(ctx);
+        this.all = storeKey == null
+                ? Category.loadAll(ctx)
+                : Category.loadAll(ctx, storeKey, defaults == null ? new ArrayList<>() : defaults);
+    }
+
+    private void save() {
+        if (storeKey == null) Category.saveAll(ctx, all);
+        else Category.saveAll(ctx, storeKey, all);
     }
 
     private void open() {
@@ -100,7 +121,7 @@ public class CategoryPicker {
             @Override
             public void clearView(@NonNull RecyclerView rv, @NonNull RecyclerView.ViewHolder vh) {
                 super.clearView(rv, vh);
-                Category.saveAll(ctx, all);    // remember the new order
+                save();    // remember the new order
             }
         });
         touchHelper.attachToRecyclerView(list);
@@ -185,7 +206,7 @@ public class CategoryPicker {
         if (c == null) {
             c = new Category(text, Category.COLORS[all.size() % Category.COLORS.length]);
             all.add(c);                              // new options go at the bottom
-            Category.saveAll(ctx, all);
+            save();
         }
         select(c);
     }
@@ -231,7 +252,7 @@ public class CategoryPicker {
                 .setNeutralButton("Delete", (dlg, w) -> {
                     all.remove(c);
                     if (c.name.equalsIgnoreCase(String.valueOf(selectedName))) selectedName = null;
-                    Category.saveAll(ctx, all);
+                    save();
                     refresh();
                     updateSelectedChip();
                 })
@@ -252,7 +273,7 @@ public class CategoryPicker {
             if (c.name.equalsIgnoreCase(String.valueOf(selectedName))) selectedName = newName;
             c.name = newName;
             c.color = chosen[0];
-            Category.saveAll(ctx, all);
+            save();
             refresh();
             updateSelectedChip();
             editor.dismiss();

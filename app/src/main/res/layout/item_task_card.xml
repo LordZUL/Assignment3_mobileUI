@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One task in the calendar's event panel: the card, then its checklist (hidden until tapped) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="6dp"
+    android:orientation="vertical">
+
+    <!-- Card: checklist progress bar across the whole top, then the row below -->
+    <LinearLayout
+        android:id="@+id/task_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_task_card"
+        android:orientation="vertical">
+
+        <!-- only shown when the task has a checklist -->
+        <ProgressBar
+            android:id="@+id/task_progress"
+            android:saveEnabled="false"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="5dp"
+            android:max="100"
+            android:progressDrawable="@drawable/progress_card" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="44dp"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="6dp"
+        android:paddingBottom="8dp">
+
+        <!-- expand toggle: only shown when the task has a checklist -->
+        <ImageButton
+            android:id="@+id/task_expand"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="6dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Show checklist"
+            android:padding="6dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_chevron_right"
+            android:visibility="gone" />
+
+        <!-- round check: gray = open, green with a tick = completed -->
+        <TextView
+            android:id="@+id/task_check"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/task_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/black"
+                android:textSize="15sp" />
+
+            <!-- class pill, checklist bar + %, time -->
+            <LinearLayout
+                android:id="@+id/task_meta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/task_class"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/task_percent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:textColor="#626F86"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/task_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#626F86"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/task_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp" />
+
+        <!-- appears on hover (mouse) or long-press (touch) -->
+        <ImageButton
+            android:id="@+id/task_edit"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="2dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Edit task"
+            android:src="@drawable/ic_edit"
+            android:visibility="gone" />
+
+        <!-- also appears on hover / long-press; asks before deleting -->
+        <ImageButton
+            android:id="@+id/task_delete"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Delete task"
+            android:src="@drawable/ic_delete"
+            android:visibility="gone" />
+
+        <!-- always visible: tap for Edit / Delete -->
+        <ImageButton
+            android:id="@+id/task_more"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="2dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Task options"
+            android:src="@drawable/ic_more_horiz" />
+    </LinearLayout>
+    </LinearLayout>
+
+    <!-- checklist items, indented like the mockup -->
+    <LinearLayout
+        android:id="@+id/task_checklist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:orientation="vertical"
+        android:visibility="gone" />
+</LinearLayout>

@@ -42,6 +42,11 @@ public class AddTaskFragment extends Fragment {
 
     /** Key used by the calendar screen to pass the selected date (ISO, e.g. 2026-06-13). */
     public static final String ARG_DATE = "date";
+    /** Key used by the calendar's edit button: the id of the task to edit. */
+    public static final String ARG_TASK_ID = "taskId";
+
+    /** The task being edited, or null when adding a new one. */
+    @Nullable private Task editing;
 
     private static final DateTimeFormatter DUE_FORMAT =
             DateTimeFormatter.ofPattern("EEE, MMMM d, yyyy", Locale.getDefault());
@@ -57,6 +62,10 @@ public class AddTaskFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null && getArguments().getString(ARG_DATE) != null) {
             dueDate = LocalDate.parse(getArguments().getString(ARG_DATE));
+        }
+        if (getArguments() != null) {
+            editing = Task.find(requireContext(), getArguments().getString(ARG_TASK_ID));
+            if (editing != null) dueDate = editing.dueDate;
         }
     }
 
@@ -75,13 +84,15 @@ public class AddTaskFragment extends Fragment {
         // Required fields get a red *
         title.setHint(required("Title"));
         ((TextView) view.findViewById(R.id.category_label)).setText(required("Category"));
+        ((TextView) view.findViewById(R.id.class_label)).setText(required("Class"));   // only shown for Academic
         dueDateValue = view.findViewById(R.id.due_date_value);
         dueTimeValue = view.findViewById(R.id.due_time_value);
         dueTimeClear = view.findViewById(R.id.due_time_clear);
 
         // Tap the time to set when it's due; x removes the time
         dueTimeValue.setOnClickListener(v -> {
-            LocalTime start = dueTime != null ? dueTime : LocalTime.of(23, 59);
+            // opens at the current time (so AM/PM is already right)
+            LocalTime start = dueTime != null ? dueTime : LocalTime.now().withSecond(0).withNano(0);
             new TimePickerDialog(requireContext(), (picker, h, min) -> {
                 dueTime = LocalTime.of(h, min);
                 showDueTime();
@@ -151,9 +162,21 @@ public class AddTaskFragment extends Fragment {
                 Toast.makeText(requireContext(), "Choose a category", Toast.LENGTH_SHORT).show();
                 return;
             }
+            // Academic tasks also need a Class
+            if (categoryName.equalsIgnoreCase("Academic") && className == null) {
+                Toast.makeText(requireContext(), "Choose a class", Toast.LENGTH_SHORT).show();
+                return;
+            }
             commitTypedEmail();   // an email typed but not yet added still counts
 
-            Toast.makeText(requireContext(), "Task saved", Toast.LENGTH_SHORT).show();
+            // Store it - the calendar shows it on its due date
+            Task saved = buildTask(view, title);
+            Task.upsert(requireContext(), saved);
+            // e.g. "Task saved - reminder at Nov 26, 10:44 AM"
+            Toast.makeText(requireContext(),
+                    (editing != null ? "Task updated - " : "Task saved - ")
+                            + TaskNotifications.describe(requireContext(), saved),
+                    Toast.LENGTH_LONG).show();
             Navigation.findNavController(v).navigateUp();
         });
 
@@ -194,6 +217,99 @@ public class AddTaskFragment extends Fragment {
                     .show();
         });
         showAttachments();
+
+        // Editing an existing task: fill everything in
+        if (editing != null) fillFrom(editing, view, title);
+    }
+
+    // ---------------------------------------------------------------------
+    // Saving / editing
+    // ---------------------------------------------------------------------
+
+    /** Collects everything on the screen into a Task. */
+    private Task buildTask(View view, EditText title) {
+        Task t = editing != null ? editing : new Task();
+        boolean academic = categoryName != null && categoryName.equalsIgnoreCase("Academic");
+        t.title = title.getText().toString().trim();
+        t.category = categoryName;
+        t.className = academic ? className : null;
+        t.courseworkType = academic ? courseworkType : null;
+        t.weight = academic ? weightInput.getText().toString().trim() : "";
+        t.priority = priority;
+        t.status = status;
+        t.location = ((EditText) view.findViewById(R.id.location_input)).getText().toString().trim();
+        t.description = ((EditText) view.findViewById(R.id.task_description)).getText().toString().trim();
+        t.dueDate = dueDate;
+        t.dueTime = dueTime;
+        t.notifyAmount = notifyAmount;
+        t.notifyUnit = notifyUnit;
+        t.repeat = repeatRule;
+        t.collaborators = new ArrayList<>(collaborators);
+        t.attachments = new ArrayList<>();
+        for (android.net.Uri u : attachments) t.attachments.add(u.toString());
+        t.checklist = checklist.getItems();
+        return t;
+    }
+
+    /** Puts a saved task's values back on the screen. */
+    private void fillFrom(Task t, View view, EditText title) {
+        Context ctx = requireContext();
+        title.setText(t.title);
+
+        categoryName = t.category;
+        showCategory(optionOrTemp(Category.loadAll(ctx), t.category));
+        className = t.className;
+        showOption(classValue, optionOrTemp(
+                Category.loadAll(ctx, "classes", Category.defaults()), t.className));
+        courseworkType = t.courseworkType;
+        showOption(courseworkValue, optionOrTemp(
+                Category.loadAll(ctx, "coursework_types", Category.defaults(COURSEWORK_TYPES)),
+                t.courseworkType));
+        weightInput.setText(t.weight);
+
+        priority = t.priority;
+        stylePill(priorityValue, PRIORITIES[priority], PRIORITY_COLORS[priority]);
+        status = t.status;
+        stylePill(statusValue, STATUSES[status], STATUS_COLORS[status]);
+
+        ((EditText) view.findViewById(R.id.location_input)).setText(t.location);
+        ((EditText) view.findViewById(R.id.task_description)).setText(t.description);
+
+        dueTime = t.dueTime;
+        repeatRule.type = t.repeat.type;
+        repeatRule.interval = t.repeat.interval;
+        repeatRule.unit = t.repeat.unit;
+        repeatRule.days = t.repeat.days.clone();
+        repeatRule.ends = t.repeat.ends;
+        repeatRule.endDate = t.repeat.endDate;
+        repeatRule.count = t.repeat.count;
+        showDueDate();   // also refreshes the time and repeat rows
+
+        notifyAmount = t.notifyAmount;
+        notifyUnit = t.notifyUnit;
+        showNotification();
+
+        for (String email : t.collaborators) {
+            if (!collaborators.contains(email)) {
+                collaborators.add(email);
+                addChip(email);
+            }
+        }
+        refreshSuggestions();
+
+        checklist.setItems(t.checklist);
+
+        for (String u : t.attachments) attachments.add(android.net.Uri.parse(u));
+        if (!attachments.isEmpty()) attachmentSection.setVisibility(View.VISIBLE);
+        showAttachments();
+    }
+
+    /** The saved option with that name, or a gray stand-in if it was deleted since. */
+    @Nullable
+    private static Category optionOrTemp(List<Category> options, @Nullable String name) {
+        if (name == null) return null;
+        Category c = Category.find(options, name);
+        return c != null ? c : new Category(name, Category.COLORS[0]);
     }
 
     // ---------------------------------------------------------------------
@@ -588,12 +704,38 @@ public class AddTaskFragment extends Fragment {
             categoryValue.setVisibility(View.GONE);
             categoryPill.setVisibility(View.VISIBLE);
             categoryPillText.setText(c.name);
-            // dot uses a stronger version of the category colour so it shows on white
-            categoryPillText.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                    dot(darken(c.color)), null, null, null);
+            categoryPillText.setTextColor(Category.TEXT_COLOR);
+            categoryPillText.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, null, null);
+            // pill is filled with the category's own colour (Academic = blue)
+            GradientDrawable fill = new GradientDrawable();
+            fill.setColor(c.color);
+            fill.setCornerRadius(50 * getResources().getDisplayMetrics().density);
+            categoryPill.setBackground(fill);
         }
+        // Academic shows Class, Coursework Type and Weight underneath
         boolean academic = c != null && c.name.equalsIgnoreCase("Academic");
         academicFields.setVisibility(academic ? View.VISIBLE : View.GONE);
+    }
+
+    /** "Empty" in gray, or a rounded pill filled with the option's colour. */
+    private void showOption(TextView tv, @Nullable Category c) {
+        float d = getResources().getDisplayMetrics().density;
+        if (c == null) {
+            tv.setText("Empty");
+            tv.setTextColor(0xFF8A8A8A);
+            tv.setTextSize(14);
+            tv.setBackground(null);
+            tv.setPadding(0, 0, 0, 0);
+        } else {
+            GradientDrawable fill = new GradientDrawable();
+            fill.setColor(c.color);
+            fill.setCornerRadius(50 * d);
+            tv.setBackground(fill);
+            tv.setText(c.name);
+            tv.setTextColor(Category.TEXT_COLOR);
+            tv.setTextSize(13);
+            tv.setPadding((int) (10 * d), (int) (2 * d), (int) (10 * d), (int) (2 * d));
+        }
     }
 
     private static int darken(int color) {
@@ -612,35 +754,36 @@ public class AddTaskFragment extends Fragment {
             "Assignment", "Quiz", "Test", "Midterm", "Final Exam",
             "Lab", "Project", "Presentation", "Reading", "Other"};
 
+    @Nullable private String className;
     @Nullable private String courseworkType;
+    private TextView classValue;
     private TextView courseworkValue;
-    private EditText classInput;
     private EditText weightInput;
 
     private void setUpAcademicFields(View view) {
-        classInput = view.findViewById(R.id.class_input);
         weightInput = view.findViewById(R.id.weight_input);
         courseworkValue = view.findViewById(R.id.coursework_value);
+        classValue = view.findViewById(R.id.class_value);
         View percent = view.findViewById(R.id.weight_percent);
 
-        // Coursework Type: dropdown list
-        view.findViewById(R.id.coursework_row).setOnClickListener(v -> {
-            float d = getResources().getDisplayMetrics().density;
-            ListPopupWindow popup = new ListPopupWindow(requireContext());
-            popup.setAnchorView(courseworkValue);
-            popup.setWidth((int) (180 * d));
-            popup.setHeight((int) (300 * d));
-            popup.setModal(true);
-            popup.setAdapter(new ArrayAdapter<>(requireContext(),
-                    android.R.layout.simple_list_item_1, COURSEWORK_TYPES));
-            popup.setOnItemClickListener((parent, item, position, id) -> {
-                courseworkType = COURSEWORK_TYPES[position];
-                courseworkValue.setText(courseworkType);
-                courseworkValue.setTextColor(0xFF000000);
-                popup.dismiss();
-            });
-            popup.show();
-        });
+        // Class: same dropdown as Category (pick, add, drag, edit, recolour).
+        // Starts empty - type a class name (e.g. "IMD 4008") to create it.
+        view.findViewById(R.id.class_row).setOnClickListener(v ->
+                CategoryPicker.show(requireContext(), "classes", Category.defaults(),
+                        className, selected -> {
+                            className = selected == null ? null : selected.name;
+                            showOption(classValue, selected);
+                        }));
+        showOption(classValue, null);
+
+        // Coursework Type: same dropdown, starting with the usual types
+        view.findViewById(R.id.coursework_row).setOnClickListener(v ->
+                CategoryPicker.show(requireContext(), "coursework_types",
+                        Category.defaults(COURSEWORK_TYPES), courseworkType, selected -> {
+                            courseworkType = selected == null ? null : selected.name;
+                            showOption(courseworkValue, selected);
+                        }));
+        showOption(courseworkValue, null);
 
         // Weight: type a number, "%" appears after it; max 100
         weightInput.addTextChangedListener(new android.text.TextWatcher() {

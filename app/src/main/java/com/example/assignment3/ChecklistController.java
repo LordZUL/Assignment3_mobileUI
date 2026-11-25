@@ -119,6 +119,22 @@ public class ChecklistController {
         showAddArea(true);
     }
 
+    /** The current items (saved with the task). */
+    public List<Item> getItems() {
+        return new ArrayList<>(items);
+    }
+
+    /** Loads a saved task's items (when editing). */
+    public void setItems(List<Item> saved) {
+        items.clear();
+        items.addAll(saved);
+        if (!items.isEmpty()) {
+            section.setVisibility(View.VISIBLE);
+            showAddArea(false);
+        }
+        render();
+    }
+
     /** If a collaborator is removed, their checklist items become unassigned. */
     public void onCollaboratorRemoved(String email) {
         for (Item it : items) if (email.equals(it.assignee)) it.assignee = null;

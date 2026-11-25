@@ -1,0 +1,11 @@
+<!-- Flat full-width bar for the top edge of a task card (fill colour set in code) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape><solid android:color="#FFE4E4E4" /></shape>
+    </item>
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape><solid android:color="#FFFFFFFF" /></shape>
+        </clip>
+    </item>
+</layer-list>
