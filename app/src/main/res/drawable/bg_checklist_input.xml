@@ -1,0 +1,6 @@
+<!-- White box with a blue outline, like Trello's "Add an item" field -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+    <stroke android:width="2dp" android:color="#FF388BFF" />
+    <corners android:radius="4dp" />
+</shape>
